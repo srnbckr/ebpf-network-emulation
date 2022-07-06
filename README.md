@@ -57,3 +57,19 @@ First run either `ebpf-delay` or `edt-bandwidth-limit`.
 ```
 sudo ./bin/map-populator
 ```
+
+# Remove
+```bash
+$ sudo tc qdisc del dev enxd89ef3f264e1 clsact                                                                    $ sudo tc qdisc del dev enxd89ef3f264e1 root
+$ sudo rm /sys/fs/bpf/IP_HANDLE_BPS_DELAY
+```
+
+# Used Resources
+[njapke/ebpf-ip-classifier](https://github.com/njapke/ebpf-ip-classifier)
+
+[njapke/ebpf-map-populator](https://github.com/njapke/ebpf-map-populator)
+
+[njapke/tc-qdisc-test](https://github.com/njapke/tc-qdisc-test
+)
+
+[Replacing HTB with EDT and BPF](https://legacy.netdevconf.info/0x14/session.html?talk-replacing-HTB-with-EDT-and-BPF)
