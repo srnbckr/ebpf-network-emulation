@@ -23,36 +23,39 @@ struct {
     __uint(type, BPF_MAP_TYPE_HASH);
     __type(key, uint32_t);
     __type(value, uint64_t);
-    __uint(max_entries, 1);
+    __uint(max_entries, 65535);
 } flow_map SEC(".maps");
 
-static inline int throttle_flow(struct __sk_buff *skb, uint32_t *throttle_rate_bps)
+static inline int throttle_flow(struct __sk_buff *skb, __u32 ip_address, uint32_t *throttle_rate_bps)
 {
-    int key = 0;
+    // use ip as key in map
+    int key = ip_address;
+
+    // when was the last packet sent?
     uint64_t *last_tstamp = bpf_map_lookup_elem(&flow_map, &key);
+    // calculate delay based on bandwidth and packet size (bps = byte/second)
     uint64_t delay_ns = ((uint64_t)skb->len) * NS_PER_SEC / *throttle_rate_bps;
 
     uint64_t now = bpf_ktime_get_ns();
     uint64_t tstamp, next_tstamp = 0;
-    
-    uint64_t delay_test = 100 * 1000000;
-    //skb->tstamp = now + delay_test;
 
+    // calculate the next timestamp
     if (last_tstamp)
         next_tstamp = *last_tstamp + delay_ns;
 
+    // if the current timestamp of the packet is in the past, use the current time
     tstamp = skb->tstamp;
     if (tstamp < now)
         tstamp = now;
 
-    /* should we throttle? */
+    // if the delayed timestamp is already in the past, send the packet
     if (next_tstamp <= tstamp) {
         if (bpf_map_update_elem(&flow_map, &key, &tstamp, BPF_ANY))
             return TC_ACT_SHOT;
         return TC_ACT_OK;
     }
 
-    /* do not queue past the time horizon */
+    // do not queue for more than 2s, just drop packet instead
     if (next_tstamp - now >= TIME_HORIZON_NS)
         return TC_ACT_SHOT;
 
@@ -60,8 +63,16 @@ static inline int throttle_flow(struct __sk_buff *skb, uint32_t *throttle_rate_b
     if (next_tstamp - now >= ECN_HORIZON_NS)
         bpf_skb_ecn_set_ce(skb);
 
+    uint64_t delay_ts = (now + (1000000 * 50));
+    if (delay_ts < next_tstamp) {
+        next_tstamp = delay_ts;
+    }
+
+    // update last timestamp in map
     if (bpf_map_update_elem(&flow_map, &key, &next_tstamp, BPF_EXIST))
         return TC_ACT_SHOT;
+
+    // set delayed timestamp for packet
     skb->tstamp = next_tstamp;
 
     return TC_ACT_OK;
@@ -104,10 +115,10 @@ int tc_main(struct __sk_buff *skb)
             }
             throttle_rate_bps = &val_struct->throttle_rate_bps;
             // Safety check, go on if no handle could be retrieved
-            if (!throttle_rate_bps) {
+            if (!throttle_rate_bps)  {
                 return TC_ACT_OK;
             }
-            return throttle_flow(skb, throttle_rate_bps);
+            return throttle_flow(skb, ip_address, throttle_rate_bps);
         }
     }
     return TC_ACT_OK;
