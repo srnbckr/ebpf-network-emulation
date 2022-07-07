@@ -1,42 +1,30 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"flag"
 	"fmt"
+	"net"
+	"os"
+	"time"
+
 	"github.com/cilium/ebpf"
 	bar "github.com/schollz/progressbar"
-	"os"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // HANDLE_BPS map value struct
-type handle_bps_delay struct {
+type handleBpsDelay struct {
 	tcHandle        uint32
 	throttleRateBps uint32
 	delayMs         uint32
 }
 
 // parseIp parses IP address from string into uint32 (with reversed order)
-func parseIp(ip string) uint32 { // TODO: add error handling
-	// split ip address
-	split := strings.Split(ip, ".")
-	ipParts := make([]uint32, 4)
-
-	// parse into uint32
-	for i, s := range split {
-		num, err := strconv.Atoi(s)
-
-		if err != nil {
-			fmt.Println("error: " + err.Error())
-		}
-
-		ipParts[i] = uint32(num)
-	}
-
-	// build into one number
-	return ((ipParts[3] << 24) & 0xff000000) | ((ipParts[2] << 16) & 0x00ff0000) | ((ipParts[1] << 8) & 0x0000ff00) | (ipParts[0] & 0x000000ff)
+func parseIpToLong(ip string) uint32 { // TODO: add error handling
+	var long uint32
+	binary.Read(bytes.NewBuffer(net.ParseIP(ip).To4()), binary.LittleEndian, &long)
+	return long
 }
 
 func fillMap(ebpfMap *ebpf.Map) {
@@ -46,16 +34,16 @@ func fillMap(ebpfMap *ebpf.Map) {
 	start := time.Now()
 
 	for i := 0; i < N; i++ {
-		var handle_bps_delay handle_bps_delay
+		var handle_bps_delay handleBpsDelay
 		index := int64(i + 2)
 		ip_string := fmt.Sprintf("172.16.%d.%d", index/256, index%256)
 
 		// set the same values for all entries for now
 		handle_bps_delay.tcHandle = uint32(1)
 		handle_bps_delay.throttleRateBps = 5000000
-		handle_bps_delay.delayMs = 100
+		handle_bps_delay.delayMs = uint32(i + 10)
 
-		err := ebpfMap.Put(parseIp(ip_string), handle_bps_delay)
+		err := ebpfMap.Put(parseIpToLong(ip_string), handle_bps_delay)
 		if err != nil {
 			fmt.Println("err: putting ip and handle into map failed")
 			fmt.Println(err)
@@ -103,12 +91,13 @@ func main() {
 	fillMap(ipHandleMap)
 
 	// Add another entry to the map to test overhead
-	var ip uint32 = 0x01010101     // IP 1.1.1.1
+	var ip uint32 = parseIpToLong("1.1.1.1") // IP 1.1.1.1
+	//ip_string := fmt.Sprintf("46.4.%d.%d", 61, 148)
 	var handle uint32 = 0x1a1e0003 // tc handle 1a1e:3
-	var handleBpsMapValue handle_bps_delay
+	var handleBpsMapValue handleBpsDelay
 
 	handleBpsMapValue.tcHandle = handle
-	handleBpsMapValue.throttleRateBps = 5000000
+	handleBpsMapValue.throttleRateBps = 10000000
 	handleBpsMapValue.delayMs = 100
 
 	err = ipHandleMap.Put(ip, handleBpsMapValue)
