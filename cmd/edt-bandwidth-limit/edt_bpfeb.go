@@ -60,7 +60,8 @@ type edtSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type edtProgramSpecs struct {
-	TcMain *ebpf.ProgramSpec `ebpf:"tc_main"`
+	SetDelay *ebpf.ProgramSpec `ebpf:"set_delay"`
+	TcMain   *ebpf.ProgramSpec `ebpf:"tc_main"`
 }
 
 // edtMapSpecs contains maps before they are loaded into the kernel.
@@ -69,6 +70,7 @@ type edtProgramSpecs struct {
 type edtMapSpecs struct {
 	IP_HANDLE_BPS_DELAY *ebpf.MapSpec `ebpf:"IP_HANDLE_BPS_DELAY"`
 	FlowMap             *ebpf.MapSpec `ebpf:"flow_map"`
+	Progs               *ebpf.MapSpec `ebpf:"progs"`
 }
 
 // edtObjects contains all objects after they have been loaded into the kernel.
@@ -92,12 +94,14 @@ func (o *edtObjects) Close() error {
 type edtMaps struct {
 	IP_HANDLE_BPS_DELAY *ebpf.Map `ebpf:"IP_HANDLE_BPS_DELAY"`
 	FlowMap             *ebpf.Map `ebpf:"flow_map"`
+	Progs               *ebpf.Map `ebpf:"progs"`
 }
 
 func (m *edtMaps) Close() error {
 	return _EdtClose(
 		m.IP_HANDLE_BPS_DELAY,
 		m.FlowMap,
+		m.Progs,
 	)
 }
 
@@ -105,11 +109,13 @@ func (m *edtMaps) Close() error {
 //
 // It can be passed to loadEdtObjects or ebpf.CollectionSpec.LoadAndAssign.
 type edtPrograms struct {
-	TcMain *ebpf.Program `ebpf:"tc_main"`
+	SetDelay *ebpf.Program `ebpf:"set_delay"`
+	TcMain   *ebpf.Program `ebpf:"tc_main"`
 }
 
 func (p *edtPrograms) Close() error {
 	return _EdtClose(
+		p.SetDelay,
 		p.TcMain,
 	)
 }

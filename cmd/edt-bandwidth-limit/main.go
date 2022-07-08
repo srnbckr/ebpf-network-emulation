@@ -58,4 +58,9 @@ func main() {
 		log.Fatalf("cannot create bpf filter: %v", err)
 	}
 
+    // Update jump map with delay prog
+	err = objs.Progs.Update(uint32(0), uint32(objs.SetDelay.FD()), ebpf.UpdateAny)
+	if err != nil {
+		println("Update", err.Error())
+	}
 }
