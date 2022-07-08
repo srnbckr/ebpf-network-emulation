@@ -23,8 +23,12 @@ func CreateFQdisc(iface netlink.Link) (*netlink.Fq, error) {
 		Parent:    netlink.HANDLE_ROOT,
 	}
 
-	fq := netlink.NewFq(attrs)
-	log.Printf("blah: %v", fq)
+	//fq := netlink.NewFq(attrs)
+
+	fq := &netlink.Fq{
+		QdiscAttrs: attrs,
+		Pacing:     0,
+	}
 
 	if err := netlink.QdiscAdd(fq); err != nil {
 		log.Fatalf("cannot add fq qdisc: %v", err)
