@@ -60,8 +60,10 @@ sudo ./bin/map-populator
 
 # Remove
 ```bash
-$ sudo tc qdisc del dev enxd89ef3f264e1 clsact                                                                    $ sudo tc qdisc del dev enxd89ef3f264e1 root
+$ sudo tc qdisc del dev eth0 clsact
+$ sudo tc qdisc del dev eth0 root
 $ sudo rm /sys/fs/bpf/IP_HANDLE_BPS_DELAY
+$ sudo rm /sys/fs/bpf/progs
 ```
 
 # Used Resources
