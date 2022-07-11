@@ -22,12 +22,12 @@ Set different delays per IP destination based on a shared eBPF map and a single 
 sudo ./bin/ebpf-delay -iface eth0
 ```
 
-## edt-bandwidth-limit
-Limit the available bandwidth to different IP destinations using the [Earliest Departure Time model](https://legacy.netdevconf.info/0x14/pub/slides/55/slides.pdf) and a shared eBPF map.
+## ebpf-network-simulation
+Limit the available bandwidth to different IP destinations using the [Earliest Departure Time model](https://legacy.netdevconf.info/0x14/pub/slides/55/slides.pdf) and set a delay, based on a shared eBPF map.
 
 ### Usage
 ```
-sudo ./bin/edt-bandwith-limit -iface eth0
+sudo ./bin/ebpf-network-simulation -iface eth0
 ```
 
 ## map-populator
@@ -53,7 +53,7 @@ struct {
 The map declaration can be found [here](cmd/headers/maps.h).
 
 ### Usage
-First run either `ebpf-delay` or `edt-bandwidth-limit`.
+First run either `ebpf-delay` or `ebpf-network-simulation`.
 ```
 sudo ./bin/map-populator
 ```
