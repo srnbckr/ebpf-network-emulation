@@ -1,4 +1,4 @@
-all: map-populator da-example edt-bandwidth-limit ebpf-delay
+all: map-populator da-example ebpf-network-simulation ebpf-delay
 
 da-example:
 	go generate ./cmd/da-example
@@ -7,9 +7,9 @@ da-example:
 map-populator:
 	go build -o bin/map-populator ./cmd/map-populator
 
-edt-bandwidth-limit:
-	go generate ./cmd/edt-bandwidth-limit
-	go build -o bin/edt-bandwidth-limit ./cmd/edt-bandwidth-limit
+ebpf-network-simulation:
+	go generate ./cmd/ebpf-network-simulation
+	go build -o bin/ebpf-network-simulation ./cmd/ebpf-network-simulation
 
 ebpf-delay:
 	go generate ./cmd/ebpf-delay
