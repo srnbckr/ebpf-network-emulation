@@ -109,9 +109,10 @@ static inline int throttle_flow(struct __sk_buff *skb, __u32 ip_address, uint32_
     uint64_t delay_ns = ((uint64_t)skb->len) * NS_PER_SEC / *throttle_rate_bps;
 
     // check if the packet is smaller than 1500 bytes (MTU size)
-    // this seems to work (not yet sure why exactly, since the delay is also added when using ICMP packets > 1500 bytes)
+    // to only add delay to packets which will not be IP fragmented
+    // TODO: do not hardcode MTU size here but rather get it from the system
     int small_packet = 0;
-    if (((uint64_t)skb->len) < 1500)
+    if (((uint64_t)skb->len) <= 1500)
         small_packet = 1;
 
     uint64_t now = bpf_ktime_get_ns();
