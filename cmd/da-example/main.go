@@ -1,7 +1,7 @@
 package main
 
 import (
-	"ebpf-network-simulator/pkg/utils"
+	"ebpf-network-simulator/internal/utils"
 	"flag"
 	"github.com/cilium/ebpf"
 	"github.com/vishvananda/netlink"

@@ -1,14 +1,14 @@
 package main
 
 import (
-	"ebpf-network-simulator/pkg/utils"
+	"ebpf-network-simulator/internal/utils"
 	"flag"
 	"github.com/cilium/ebpf"
 	"github.com/vishvananda/netlink"
 	"log"
 )
 
-//go:generate go run github.com/cilium/ebpf/cmd/bpf2go edt ebpf/ebpf_edt_bandwidth.c -- -I../headers
+//go:generate go run github.com/cilium/ebpf/cmd/bpf2go edt ebpf/network_simulation.c -- -I../headers
 
 const (
 	PIN_PATH = "/sys/fs/bpf/"
@@ -58,7 +58,7 @@ func main() {
 		log.Fatalf("cannot create bpf filter: %v", err)
 	}
 
-    // Update jump map with delay prog
+	// Update jump map with delay prog
 	err = objs.Progs.Update(uint32(0), uint32(objs.SetDelay.FD()), ebpf.UpdateAny)
 	if err != nil {
 		println("Update", err.Error())
