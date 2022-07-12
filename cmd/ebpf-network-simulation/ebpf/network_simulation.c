@@ -33,7 +33,30 @@ static inline int inject_delay(struct __sk_buff *skb, uint32_t *delay_ms) {
     uint64_t delay_ns;
     uint64_t now = bpf_ktime_get_ns();
     delay_ns = (*delay_ms) * NS_PER_MS;
-    skb->tstamp = now + delay_ns;
+    uint64_t ts = skb->tstamp;
+    uint64_t new_ts = ((uint64_t)skb->tstamp) + delay_ns;
+
+    // debug msg, read with 
+    // sudo cat /sys/kernel/debug/tracing/trace_pipe
+    //const char fmt_ts[] = "skb Tstamp: %d\n";
+    //bpf_trace_printk(fmt_ts, sizeof(fmt_ts), ts);
+    //const char fmt_str[] = "Now Tstamp: %d\n";
+    //bpf_trace_printk(fmt_str, sizeof(fmt_str), now);
+    //const char fmt_str2[] = "Now + delay Tstamp: %d\n";
+    //bpf_trace_printk(fmt_str2, sizeof(fmt_str2), now + delay_ns);
+    //const char fmt_str3[] = "New Tstamp: %d\n";
+    //bpf_trace_printk(fmt_str3, sizeof(fmt_str3), new_ts);
+
+    // sometimes skb-tstamp is reset to 0
+    // https://patchwork.kernel.org/project/netdevbpf/patch/20220301053637.930759-1-kafai@fb.com/
+    // check if skb->tstamp == 0
+    if (ts == 0) {
+        skb->tstamp = now + delay_ns;
+        return TC_ACT_OK;
+    }
+    // otherwise add additional delay to packets 
+    skb->tstamp = new_ts;
+
     return TC_ACT_OK;
 }
 
@@ -105,15 +128,8 @@ static inline int throttle_flow(struct __sk_buff *skb, __u32 ip_address, uint32_
 
     // when was the last packet sent?
     uint64_t *last_tstamp = bpf_map_lookup_elem(&flow_map, &key);
-    // calculate delay based on bandwidth and packet size (bps = byte/second)
+    // calculate delay between packets based on bandwidth and packet size (bps = byte/second)
     uint64_t delay_ns = ((uint64_t)skb->len) * NS_PER_SEC / *throttle_rate_bps;
-
-    // check if the packet is smaller than 1500 bytes (MTU size)
-    // to only add delay to packets which will not be IP fragmented
-    // TODO: do not hardcode MTU size here but rather get it from the system
-    int small_packet = 0;
-    if (((uint64_t)skb->len) <= 1500)
-        small_packet = 1;
 
     uint64_t now = bpf_ktime_get_ns();
     uint64_t tstamp, next_tstamp = 0;
@@ -129,10 +145,12 @@ static inline int throttle_flow(struct __sk_buff *skb, __u32 ip_address, uint32_
 
     // if the delayed timestamp is already in the past, send the packet
     if (next_tstamp <= tstamp) {
+        //const char fmt_past[] = "We're living in the past -> next_tstamp: %d, tstamp -> %d\n";
+        //bpf_trace_printk(fmt_past, sizeof(fmt_past), next_tstamp, tstamp);
         if (bpf_map_update_elem(&flow_map, &key, &tstamp, BPF_ANY))
             return TC_ACT_SHOT;
-        if (small_packet)
-            bpf_tail_call(skb, &progs, 0);
+        //set additional delay for packet
+        bpf_tail_call(skb, &progs, 0);
         return TC_ACT_OK;
     }
 
@@ -148,12 +166,15 @@ static inline int throttle_flow(struct __sk_buff *skb, __u32 ip_address, uint32_
     if (bpf_map_update_elem(&flow_map, &key, &next_tstamp, BPF_EXIST))
         return TC_ACT_SHOT;
 
+
+    //const char fmt_throt[] = "Throttled:  -> skb_tstamp: %d, next_tstamp: %d\n";
+    //bpf_trace_printk(fmt_throt, sizeof(fmt_throt), skb->tstamp, next_tstamp);
     // set delayed timestamp for packet
     skb->tstamp = next_tstamp;
 
-    // tail call test
-    if (small_packet)
-        bpf_tail_call(skb, &progs, 0);
+    //set additional delay for packet
+    bpf_tail_call(skb, &progs, 0);
+    
     return TC_ACT_OK;
 }
 

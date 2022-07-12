@@ -17,7 +17,27 @@ static inline int set_delay(struct __sk_buff *skb, uint32_t *delay_ms) {
     uint64_t delay_ns;
     uint64_t now = bpf_ktime_get_ns();
     delay_ns = (*delay_ms) * NS_PER_MS;
-    skb->tstamp = now + delay_ns;
+    uint64_t ts = skb->tstamp;
+    uint64_t new_ts = ((uint64_t)skb->tstamp) + delay_ns;
+
+    // debug msgs, read with 
+    // sudo cat /sys/kernel/debug/tracing/trace_pipe
+    //const char fmt_ts[] = "skb Tstamp: %d\n";
+    //bpf_trace_printk(fmt_ts, sizeof(fmt_ts), ts);
+    //const char fmt_str[] = "NOW Tstamp: %d\n";
+    //bpf_trace_printk(fmt_str, sizeof(fmt_str), now);
+    //const char fmt_str2[] = "Now + delay Tstamp: %d\n";
+    //bpf_trace_printk(fmt_str2, sizeof(fmt_str2), now + delay_ns);
+    //const char fmt_str3[] = "New Tstamp: %d\n";
+    //bpf_trace_printk(fmt_str3, sizeof(fmt_str3), new_ts);
+
+    // check if skb->tstamp == 0
+    if (!ts) {
+        skb->tstamp = now + delay_ns;
+        return TC_ACT_OK;
+    } 
+    skb->tstamp = new_ts;
+
     return TC_ACT_OK;
 }
 
