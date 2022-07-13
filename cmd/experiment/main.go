@@ -135,7 +135,7 @@ func ebpfExp(iface netlink.Link) {
 
 func classic(iface netlink.Link) {
 	// create htb root qdisc
-	htbRootQdisc, err := utils.CreateHtbQdisc(iface, netlink.MakeHandle(0x1a1e, 0), netlink.HANDLE_ROOT)
+	htbRootQdisc, err := utils.CreateHtbQdisc(iface, netlink.MakeHandle(1, 0), netlink.HANDLE_ROOT)
 	if err != nil {
 		log.Fatalf("cannot add htb qdisc: %v", err)
 		return
@@ -198,7 +198,7 @@ func createNetemForLink(iface netlink.Link, htbRootQdisc *netlink.Htb, index uin
 		Rate:    DEFAULTRATE,
 		Quantum: 1514,
 	}
-	htbClass, err := utils.CreateHtbClass(iface, netlink.MakeHandle(0x1a1e, index), htbRootQdisc.Handle, classAttr)
+	htbClass, err := utils.CreateHtbClass(iface, netlink.MakeHandle(1, index), htbRootQdisc.Handle, classAttr)
 
 	if err != nil {
 		log.Fatalf("cannot add htb class: %v", err)
@@ -206,13 +206,21 @@ func createNetemForLink(iface netlink.Link, htbRootQdisc *netlink.Htb, index uin
 	}
 	// create netem qdisc
 	// (TC, "qdisc", "add", "dev", tapName, "parent", fmt.Sprintf("1:%x", index), "handle", fmt.Sprintf("%x:", index), "netem", "delay", "0.0", "limit", "1000000")
-	netemAttr := netlink.NetemQdiscAttrs{
-		Latency: 100 * 1000, // 100ms
-	}
-	_, err = utils.CreateNetemQdisc(iface, parseStringToLong(fmt.Sprintf("%x:", index)), htbClass.Handle, netemAttr)
+	//netemAttr := netlink.NetemQdiscAttrs{
+	//	Latency: 100 * 1000, // 100ms
+	//	Limit:   1000000,
+	//}
+	//_, err = utils.CreateNetemQdisc(iface, parseStringToLong(fmt.Sprintf("%x:", index)), htbClass.Handle, netemAttr)
+	//
+	//if err != nil {
+	//	log.Fatalf("cannot add netem qdisc: %v", err)
+	//	return err
+	//}
 
-	if err != nil {
-		log.Fatalf("cannot add netem qdisc: %v", err)
+	cmd := exec.Command(TC, "qdisc", "add", "dev", iface.Attrs().Name, "parent", netlink.HandleStr(htbClass.Handle), "handle", fmt.Sprintf("%x:", index), "netem", "delay", "100.0ms", "limit", "1000000")
+
+	if out, err := cmd.CombinedOutput(); err != nil {
+		log.Fatalf("cannot add netem qdisc: %v  -> %#v   - %s", err, cmd.Args, out)
 		return err
 	}
 
@@ -223,7 +231,7 @@ func createNetemForLink(iface netlink.Link, htbRootQdisc *netlink.Htb, index uin
 	// yes its required to set "src" as "dest_net" and "dst" as "source_net", this is intentional
 	// removing the "match ip dst [SOURCE_NET]" filter as it wouldn't do anything: there is only one network on this tap anyway
 	// tc filter add dev [TAP_NAME] protocol ip parent 1: prio [INDEX] u32 match ip src [DEST_NET] classid 1:[INDEX]
-	cmd := exec.Command(TC, "filter", "add", "dev", iface.Attrs().Name, "protocol", "ip", "parent", netlink.HandleStr(htbRootQdisc.Handle), "prio", "1", "u32", "match", "ip", "src", ip, "classid", netlink.HandleStr(htbClass.Handle))
+	cmd = exec.Command(TC, "filter", "add", "dev", iface.Attrs().Name, "protocol", "ip", "parent", netlink.HandleStr(htbRootQdisc.Handle), "prio", "1", "u32", "match", "ip", "src", ip, "classid", netlink.HandleStr(htbClass.Handle))
 
 	if out, err := cmd.CombinedOutput(); err != nil {
 		log.Fatalf("cannot add tc filter: %v  -> %#v   - %s", err, cmd.Args, out)
