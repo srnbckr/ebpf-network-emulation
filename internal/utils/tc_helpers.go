@@ -1,9 +1,10 @@
 package utils
 
 import (
+	"log"
+
 	"github.com/vishvananda/netlink"
 	"golang.org/x/sys/unix"
-	"log"
 )
 
 func GetIface(name string) (netlink.Link, error) {
@@ -51,7 +52,7 @@ func CreateNetemQdisc(iface netlink.Link, handle, parent uint32, netemAttr netli
 		log.Fatalf("cannot add netem qdisc: %v", err)
 		return nil, err
 	}
-	log.Printf("Added netem qdisc %v", netemQdisc)
+	//log.Printf("Added netem qdisc %v", netemQdisc)
 	return netemQdisc, nil
 }
 
@@ -68,7 +69,7 @@ func CreateHtbClass(iface netlink.Link, handle, parent uint32, htbClassAttrs net
 		log.Fatalf("cannot add htb class: %v", err)
 		return nil, err
 	}
-	log.Printf("Added htb class %v", htbClass)
+	//log.Printf("Added htb class %v", htbClass)
 	return htbClass, nil
 }
 
@@ -85,7 +86,7 @@ func CreateHtbQdisc(iface netlink.Link, handle, parent uint32) (*netlink.Htb, er
 		log.Fatalf("cannot add htb qdisc: %v", err)
 		return nil, err
 	}
-	log.Printf("Added htb qdisc %v", qdiscHtb)
+	//log.Printf("Added htb qdisc %v", qdiscHtb)
 	return qdiscHtb, nil
 }
 
