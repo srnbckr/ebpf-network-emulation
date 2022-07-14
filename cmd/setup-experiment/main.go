@@ -35,7 +35,7 @@ func main() {
 
 	f.WriteString("N,index,i,j,time\n")
 
-	for i := 2 << 8; i > 0; i = i >> 1 {
+	for i := 2 << 6; i > 0; i = i >> 1 {
 		log.Printf("starting new process with N = ", i)
 		timeNewSync(i, f)
 		// timeNewAsync(i, f)
@@ -54,7 +54,7 @@ func timeNewSync(N int, f *os.File) {
 	for i := 0; i < N; i++ {
 		//tapName := "tap" + strconv.Itoa(i)
 
-		for j := N - 1; j >= 0; j-- {
+		for j := 0; j < N; j++ {
 			// skip self
 			if j == i {
 				continue
