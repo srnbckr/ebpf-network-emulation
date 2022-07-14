@@ -24,6 +24,7 @@ var (
 	rules      *int
 	test_vm    *string
 	run_ebpf   *bool
+	match      *int
 )
 
 const (
@@ -36,6 +37,7 @@ func init() {
 	rules = flag.Int("rules", 10, "Amount of filter rules to add. Refers to qdiscs/filters or eBPF map entries")
 	test_vm = flag.String("test_host", "172.18.0.2:8888", "Test Unikernel VM")
 	run_ebpf = flag.Bool("run_ebpf", false, "Run the eBPF experiment")
+	match = flag.Int("match", 0, "Match at rule N")
 }
 
 func main() {
@@ -163,7 +165,19 @@ func classic(iface netlink.Link) {
 
 	for i := 0; i < N; i++ {
 		index := int64(i + 2)
-		err := createNetemForLink(iface, htbRootQdisc, uint16(index), fmt.Sprintf("172.16.%d.%d", index/256, index%256))
+
+		// insert matching rule when set
+		if i != 0 && i == *match {
+			log.Printf("Inserting matching rule at %d", i)
+			// set delay for matching rule to 0
+			err := createNetemForLink(iface, htbRootQdisc, uint16(index), "172.18.0.1", "0.0ms")
+			if err != nil {
+				log.Fatalf("error creating netem link: %v", err)
+			}
+			pbar.Add(1)
+			continue
+		}
+		err := createNetemForLink(iface, htbRootQdisc, uint16(index), fmt.Sprintf("172.16.%d.%d", index/256, index%256), "100.0ms")
 		if err != nil {
 			log.Fatalf("error creating netem link: %v", err)
 		}
@@ -191,7 +205,7 @@ func classic(iface netlink.Link) {
 
 }
 
-func createNetemForLink(iface netlink.Link, htbRootQdisc *netlink.Htb, index uint16, ip string) error {
+func createNetemForLink(iface netlink.Link, htbRootQdisc *netlink.Htb, index uint16, ip string, delay string) error {
 	// create htb class
 	// (TC, "class", "add", "dev", tapName, "parent", "1:", "classid", fmt.Sprintf("1:%x", index), "htb", "rate", DEFAULTRATE, "quantum", "1514")
 
@@ -218,7 +232,7 @@ func createNetemForLink(iface netlink.Link, htbRootQdisc *netlink.Htb, index uin
 	//	return err
 	//}
 
-	cmd := exec.Command(TC, "qdisc", "add", "dev", iface.Attrs().Name, "parent", netlink.HandleStr(htbClass.Handle), "handle", fmt.Sprintf("%x:", index), "netem", "delay", "100.0ms", "limit", "1000000")
+	cmd := exec.Command(TC, "qdisc", "add", "dev", iface.Attrs().Name, "parent", netlink.HandleStr(htbClass.Handle), "handle", fmt.Sprintf("%x:", index), "netem", "delay", delay, "limit", "1000000")
 
 	if out, err := cmd.CombinedOutput(); err != nil {
 		log.Fatalf("cannot add netem qdisc: %v  -> %#v   - %s", err, cmd.Args, out)
