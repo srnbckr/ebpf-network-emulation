@@ -66,6 +66,7 @@ int tc_main(struct __sk_buff *skb)
     if (eth_type == bpf_htons(ETH_P_IP)) {
         ip_type = parse_iphdr(&nh, data_end, &iphdr);
         if (ip_type == IPPROTO_ICMP || ip_type == IPPROTO_TCP || ip_type == IPPROTO_UDP) {
+            // needs to be set to iphd->saddr for tap devices
             __u32 ip_address = iphdr->daddr; // destination IP, to be used as map lookup key
             __u32 *throttle_rate_bps;
             __u32 *delay_ms;

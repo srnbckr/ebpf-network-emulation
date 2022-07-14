@@ -48,6 +48,7 @@ func main() {
 
 	if *run_ebpf {
 		ebpfExp(iface)
+		return
 	}
 	classic(iface)
 }
