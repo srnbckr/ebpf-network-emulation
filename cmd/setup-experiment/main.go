@@ -34,9 +34,9 @@ const (
 	TC       = "/sbin/tc"
 	IPTABLES = "/sbin/iptables"
 	IPSET    = "/sbin/ipset"
-	MKTAP    = "./mk-tap.sh"
-	CRTAP    = "./create-tap.sh"
-	CRBR     = "./create-bridge.sh"
+	// MKTAP    = "./mk-tap.sh"
+	CRTAP = "./create-tap.sh"
+	CRBR  = "./create-bridge.sh"
 )
 
 func main() {

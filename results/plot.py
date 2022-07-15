@@ -21,11 +21,13 @@ def main():
     bandwidth_ebpf_df = pd.read_csv("bandwidth_ebpf.csv", index_col="Filters")
     setup_exp_df = pd.read_csv("log-1024.csv")
     setup_gcp = pd.read_csv("log-1024-gcp.csv")
+    setup_metal = pd.read_csv("ec2-metal.csv")
 
     # plot_setup_exp(setup_exp_df)
     # plot_setup_exp_ecdf(setup_exp_df)
-    plot_setup_time_per_link(setup_exp_df, filename="time_per_link_rel_bare.pdf")
-    plot_setup_time_per_link(setup_gcp, filename="time_per_link_rel_gcp.pdf")
+    # plot_setup_time_per_link(setup_exp_df, filename="time_per_link_rel_bare.pdf")
+    # plot_setup_time_per_link(setup_gcp, filename="time_per_link_rel_gcp.pdf")
+    plot_setup_time_per_link(setup_metal, filename="time_per_link_rel_metal.pdf")
 
     # plot single graphs
     plot_latency(
