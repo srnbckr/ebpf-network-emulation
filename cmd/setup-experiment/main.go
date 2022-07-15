@@ -55,7 +55,7 @@ func main() {
 	f.WriteString("N,index,i,j,time\n")
 
 	log.SetOutput(os.Stdout)
-	// log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.DebugLevel)
 
 	// for i := 1; i < 2<<12; i = i << 1 {
 	for i := 2 << 8; i > 0; i = i >> 1 {
@@ -84,7 +84,7 @@ func cleanNew(N int, rtnl *tc.Tc) (int, map[string]int) {
 	_, err = createQDiscNew(devId, rtnl)
 
 	if err != nil {
-		log.Debugf("error: %v", err)
+		log.Errorf("error: %v", err)
 	}
 
 	tapDevices := make(map[string]int)
@@ -102,7 +102,7 @@ func cleanNew(N int, rtnl *tc.Tc) (int, map[string]int) {
 		_, err = createQDiscNew(tapDevices[tapName], rtnl)
 
 		if err != nil {
-			log.Debugf("error: %v", err)
+			log.Errorf("error: %v", err)
 		}
 
 		pbar.Add(1)
@@ -159,13 +159,13 @@ func timeNewSync(N int, f *os.File) {
 			err = createLinkNew(tapDevices[fmt.Sprintf("tap%d", i)], rtnl, index, a, b, 1.1)
 
 			if err != nil {
-				log.Debugf("error: ", err)
+				log.Errorf("error: ", err)
 			}
 
 			/*err = updateDelayNew(tapMap[tapName], rtnl, index, 1.1, 5)
 
 			if err != nil {
-				log.Debugf("error: ", err)
+				log.Errorf("error: ", err)
 			}*/
 
 			innerEnd := time.Now()
@@ -266,13 +266,13 @@ func innerLoopAsync(wg *sync.WaitGroup, devId int, pbar *bar.ProgressBar, i int,
 		err = createLinkNew(devId, rtnl, index, a, b, 1.1)
 
 		if err != nil {
-			log.Debugf("innerLoopAsync: could not create link. error: %v", err)
+			log.Errorf("innerLoopAsync: could not create link. error: %v", err)
 		}
 
 		/*err = updateDelayNew(devId, rtnl, index, 1.1, 5)
 
 		if err != nil {
-			log.Debugf("innerLoopAsync: could not update delay. error: %v", err)
+			log.Errorf("innerLoopAsync: could not update delay. error: %v", err)
 		}*/
 		innerEnd := time.Now()
 		res <- fmt.Sprintf("%d,%d,%d,%d,%d\n", N, index, i, j, innerEnd.Sub(innerStart).Nanoseconds())
@@ -280,7 +280,7 @@ func innerLoopAsync(wg *sync.WaitGroup, devId int, pbar *bar.ProgressBar, i int,
 		pbar.Add(1)
 
 		if err != nil {
-			log.Debugf("error: ", err)
+			log.Errorf("error: ", err)
 		}
 	}
 
