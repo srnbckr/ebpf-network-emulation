@@ -21,7 +21,8 @@ func parseIp(ip string) uint32 {
 		num, err := strconv.Atoi(s)
 
 		if err != nil {
-			log.Debugf("error: ", err)
+			log.Errorf("error: ", err)
+			return 0
 		}
 
 		ipParts[i] = uint32(num)
@@ -63,7 +64,8 @@ func createQDiscNew(devId int, rtnl *tc.Tc) (int64, error) {
 	err = rtnl.Qdisc().Add(&qdisc)
 
 	if err != nil {
-		log.Debugf("createQDiscNew: qdisc adding failed. error: %v", err)
+		log.Errorf("createQDiscNew: qdisc adding failed. error: %v", err)
+		return 0, errors.WithStack(err)
 	}
 
 	// tc class add dev [TAP_NAME] parent 1: classid 1:1 htb rate [DEFAULTRATE] quantum 1514
@@ -98,7 +100,8 @@ func createQDiscNew(devId int, rtnl *tc.Tc) (int64, error) {
 	err = rtnl.Class().Add(&class)
 
 	if err != nil {
-		log.Debugf("createQDiscNew: class adding failed. error: %v", err)
+		log.Errorf("createQDiscNew: class adding failed. error: %v", err)
+		return 0, errors.WithStack(err)
 	}
 
 	// return starting index for delays
@@ -139,7 +142,8 @@ func createLinkNew(devId int, rtnl *tc.Tc, index uint32, a string, b string, del
 	err := rtnl.Class().Add(&class)
 
 	if err != nil {
-		log.Debugf("createLinkNew: could not add class %d. error: %v", index, err)
+		log.Errorf("createLinkNew: could not add class %d. error: %v", index, err)
+		return errors.WithStack(err)
 	}
 
 	// tc qdisc add dev [TAP_NAME] parent 1:[INDEX] handle [INDEX]: netem delay 0.0ms limit 1000000
@@ -168,7 +172,8 @@ func createLinkNew(devId int, rtnl *tc.Tc, index uint32, a string, b string, del
 	err = rtnl.Qdisc().Add(&qdisc)
 
 	if err != nil {
-		log.Debugf("createLinkNew: could not add qdisc %d. error: %v", index, err)
+		log.Errorf("createLinkNew: could not add qdisc %d. error: %v", index, err)
+		return errors.WithStack(err)
 	}
 
 	// yes its required to set "src" as "dest_net" and "dst" as "source_net", this is intentional
@@ -247,7 +252,8 @@ func updateDelayNew(devId int, rtnl *tc.Tc, index uint32, delay float64, bandwid
 	err := rtnl.Qdisc().Change(&qdisc)
 
 	if err != nil {
-		log.Debugf("updateDelayNew: could not change qdisc %d. error: %v", index, err)
+		log.Errorf("updateDelayNew: could not change qdisc %d. error: %v", index, err)
+		return errors.WithStack(err)
 	}
 
 	return nil
