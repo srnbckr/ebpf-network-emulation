@@ -1,5 +1,10 @@
 # ebpf-network-simulator
 
+# Dependencies
+```
+$ sudo apt-get install -y clang gcc-multilib libbpf-dev
+```
+
 # Compilation
 Use the provided Makefile, the eBPF programs will be compiled with `go generate`:
 
