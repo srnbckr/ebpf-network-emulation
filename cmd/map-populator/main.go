@@ -91,14 +91,14 @@ func main() {
 	fillMap(ipHandleMap)
 
 	// Add another entry to the map to test overhead
-	var ip uint32 = parseIpToLong("1.1.1.1") // IP 1.1.1.1
+	var ip uint32 = parseIpToLong("46.4.61.148") // IP 1.1.1.1
 	//ip_string := fmt.Sprintf("46.4.%d.%d", 61, 148)
 	var handle uint32 = 0x1a1e0003 // tc handle 1a1e:3
 	var handleBpsMapValue handleBpsDelay
 
 	handleBpsMapValue.tcHandle = handle
-	handleBpsMapValue.throttleRateBps = 10000000
-	handleBpsMapValue.delayMs = 100
+	handleBpsMapValue.throttleRateBps = 1000000
+	handleBpsMapValue.delayMs = 50
 
 	err = ipHandleMap.Put(ip, handleBpsMapValue)
 	if err != nil {

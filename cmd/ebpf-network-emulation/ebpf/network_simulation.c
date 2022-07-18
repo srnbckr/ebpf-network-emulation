@@ -16,7 +16,7 @@
 /* the maximum delay we are willing to add (drop packets beyond that) */
 #define TIME_HORIZON_NS (2000 * 1000 * 1000)
 #define NS_PER_SEC 1000000000
-#define ECN_HORIZON_NS 5000000
+#define ECN_HORIZON_NS 500000000
 #define NS_PER_MS 1000000
 
 

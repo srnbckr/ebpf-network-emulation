@@ -1,4 +1,4 @@
-all: map-populator da-example ebpf-network-simulation ebpf-delay experiment
+all: map-populator da-example ebpf-network-emulation ebpf-delay experiment
 
 da-example:
 	go generate ./cmd/da-example
@@ -7,9 +7,9 @@ da-example:
 map-populator:
 	go build -o bin/map-populator ./cmd/map-populator
 
-ebpf-network-simulation:
-	go generate ./cmd/ebpf-network-simulation
-	go build -o bin/ebpf-network-simulation ./cmd/ebpf-network-simulation
+ebpf-network-emulation:
+	go generate ./cmd/ebpf-network-emulation
+	go build -o bin/ebpf-network-emulation ./cmd/ebpf-network-emulation
 
 ebpf-delay:
 	go generate ./cmd/ebpf-delay

@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"ebpf-network-simulator/internal/utils"
 	"encoding/binary"
 	"flag"
 	"fmt"
@@ -13,6 +12,8 @@ import (
 	"os/exec"
 	"strconv"
 	"time"
+
+	"github.com/srnbckr/ebpf-network-emulation/internal/utils"
 
 	"github.com/cilium/ebpf"
 	bar "github.com/schollz/progressbar"

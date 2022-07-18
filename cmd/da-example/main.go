@@ -1,11 +1,13 @@
 package main
 
 import (
-	"ebpf-network-simulator/internal/utils"
 	"flag"
+	"log"
+
+	"github.com/srnbckr/ebpf-network-emulation/internal/utils"
+
 	"github.com/cilium/ebpf"
 	"github.com/vishvananda/netlink"
-	"log"
 )
 
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go tc ebpf/tc_ebpf_delay.c -- -I../headers
