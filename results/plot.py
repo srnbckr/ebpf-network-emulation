@@ -1,5 +1,6 @@
 import seaborn as sns
 import pandas as pd
+import json
 from typing import List
 from matplotlib import pyplot as plt
 from matplotlib import ticker as tick
@@ -50,11 +51,16 @@ def main():
             filename=f"bandwidth_combined_{node}.pdf",
         )
 
-        # Figure 7
+        # Figure 7 and 8
         # ping experiment
         if node == "gcp":
             df = pd.read_csv(f"./{node}/ping_experiment.csv")
             plot_ping_experiment(df, filename=f"ping_experiment_{node}.pdf")
+            plot_iperf_experiment(
+                "./gcp/iperf-netem-10min.json",
+                "./gcp/iperf-ebpf-10min.json",
+                "iperf_experiment_gcp-10min.pdf",
+            )
 
 
 def plot_latency_htb_matched(df_list: List[pd.DataFrame], filename: str):
@@ -262,6 +268,44 @@ def plot_ping_experiment(df: pd.DataFrame, filename: str):
     # g.set_title(title)
     g.set_xlabel("Time [s]")
     g.set_ylabel("Latency [ms]")
+    g.grid(True)
+    # g.set_xlim(0, 65534)
+    # g.set_ylim(0, 25)
+    plt.tight_layout()
+    plt.savefig(filename, format="pdf", bbox_inches="tight")
+
+
+def plot_iperf_experiment(result_file_netem: str, result_file_ebpf: str, filename: str):
+    with open(result_file_netem, "r") as f:
+        data_netem = json.load(f)
+    with open(result_file_ebpf, "r") as f2:
+        data_ebpf = json.load(f2)
+    df_netem = pd.json_normalize(data_netem, record_path=["intervals"])
+    df_ebpf = pd.json_normalize(data_ebpf, record_path=["intervals"])
+    df_netem["mean"] = df_netem["sum.bits_per_second"].rolling(window=10).mean()
+    df_netem = df_netem.iloc[::10, :]
+    df_ebpf["mean"] = df_ebpf["sum.bits_per_second"].rolling(window=10).mean()
+    df_ebpf = df_ebpf.iloc[::10, :]
+    df = pd.concat([df_netem, df_ebpf], keys=["NetEm", "eBPF"], names=["Method"])
+
+    sns.set(style="darkgrid")
+    plot_set_font()
+    fig, axs = plt.subplots(1, 1, figsize=plot_set_size(PAPER_WIDTH, fraction=0.5))
+    df["sum.bits_per_second"] = df["sum.bits_per_second"] / 1e6
+    # df = df[df["sum.start"] > 0]
+    df["mean"] = df["mean"] / 1e6
+    g = sns.lineplot(
+        data=df,
+        x="sum.start",
+        y="mean",
+        style="Method",
+        hue="Method",
+        palette="muted",
+        # markers=True,
+        ax=axs,
+    )
+    g.set_xlabel("Time [s]")
+    g.set_ylabel("Throughput [Mbit/s]")
     g.grid(True)
     # g.set_xlim(0, 65534)
     # g.set_ylim(0, 25)
