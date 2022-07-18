@@ -1,5 +1,7 @@
 from matplotlib import pyplot as plt
 from matplotlib import ticker as tick
+import seaborn as sns
+
 
 def plot_set_font():
     tex_fonts = {
@@ -9,7 +11,7 @@ def plot_set_font():
         "font.size": 8,
         "legend.fontsize": 8,
         "xtick.labelsize": 8,
-        "ytick.labelsize": 8
+        "ytick.labelsize": 8,
     }
     plt.rcParams.update(tex_fonts)
 
@@ -30,9 +32,9 @@ def plot_set_size(width, fraction=1, subplots=(1, 1)):
     fig_dim: tuple
             Dimensions of figure in inches
     """
-    if width == 'thesis':
+    if width == "thesis":
         width_pt = 426.79135
-    elif width == 'beamer':
+    elif width == "beamer":
         width_pt = 307.28987
     else:
         width_pt = width
@@ -44,7 +46,7 @@ def plot_set_size(width, fraction=1, subplots=(1, 1)):
 
     # Golden ratio to set aesthetic figure height
     # https://disq.us/p/2940ij3
-    golden_ratio = (5 ** .5 - 1) / 2
+    golden_ratio = (5**0.5 - 1) / 2
 
     # Figure width in inches
     fig_width_in = fig_width_pt * inches_per_pt
