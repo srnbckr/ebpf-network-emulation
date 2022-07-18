@@ -10,49 +10,6 @@ PAPER_WIDTH = 516.0
 
 
 def main():
-<<<<<<< HEAD
-=======
-    # read files
-    lat_htb_df = pd.read_csv("latency_htb.csv", index_col="Filters")
-    bandwidth_htb_df = pd.read_csv("bandwidth_htb.csv", index_col="Filters")
-    lat_htb_match_df = pd.read_csv("latency_htb_match_1000.csv", index_col="Filters")
-    bandwidth_htb_match_df = pd.read_csv(
-        "bandwidth_htb_match_1000.csv", index_col="Filters"
-    )
-    lat_ebpf_df = pd.read_csv("latency_ebpf.csv", index_col="Filters")
-    bandwidth_ebpf_df = pd.read_csv("bandwidth_ebpf.csv", index_col="Filters")
-    setup_exp_df = pd.read_csv("log-1024.csv")
-    setup_gcp = pd.read_csv("log-1024-gcp.csv")
-    setup_metal = pd.read_csv("ec2-metal.csv")
-
-    # plot_setup_exp(setup_exp_df)
-    # plot_setup_exp_ecdf(setup_exp_df)
-    # plot_setup_time_per_link(setup_exp_df, filename="time_per_link_rel_bare.pdf")
-    # plot_setup_time_per_link(setup_gcp, filename="time_per_link_rel_gcp.pdf")
-    plot_setup_time_per_link(setup_metal, filename="time_per_link_rel_metal.pdf")
-
-    # plot single graphs
-    plot_latency(
-        lat_htb_df,
-        title="HTB: latency by filter (no match)",
-        filename="latency_htb.pdf",
-    )
-    plot_bandwidth(
-        bandwidth_htb_df,
-        title="HTB: bandwidth by filter (no match)",
-        filename="bandwidth_htb.pdf",
-    )
-    plot_latency(
-        lat_ebpf_df,
-        title="eBPF: latency by filter (no match)",
-        filename="latency_ebpf.pdf",
-    )
-    plot_bandwidth(
-        bandwidth_ebpf_df,
-        title="eBPF: bandwidth by filter (no match)",
-        filename="bandwidth_ebpf.pdf",
-    )
->>>>>>> f46744628dc8e1741a547de29f27fd378386079d
 
     for node in ["gcp", "metal"]:
         # Figure 1
