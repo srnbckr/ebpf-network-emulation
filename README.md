@@ -1,6 +1,7 @@
-# ebpf-network-simulator
+# ebpf-network-emulation
 
 # Dependencies
+The following installs the needed dependencies on Ubuntu 20.04 / 22.04:
 ```
 $ sudo apt-get install -y clang gcc-multilib libbpf-dev
 ```
