@@ -239,7 +239,7 @@ def plot_setup_time_per_link(df: pd.DataFrame, filename: str):
         ax=axs,
         palette="muted",
     )
-    g.set_ylabel("Time per Link (ms)")
+    g.set_ylabel("Time per Link [ms]")
     g.set_xlabel("\% Links")
     plt.tight_layout()
     plt.savefig(filename, format="pdf", bbox_inches="tight")
@@ -307,7 +307,7 @@ def plot_iperf_experiment(result_file_netem: str, result_file_ebpf: str, filenam
     g.set_xlabel("Time [s]")
     g.set_ylabel("Throughput [Mbit/s]")
     g.grid(True)
-    # g.set_xlim(0, 65534)
+   # g.set_xlim(0, 60)
     # g.set_ylim(0, 25)
     plt.tight_layout()
     plt.savefig(filename, format="pdf", bbox_inches="tight")
